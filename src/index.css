@@ -821,6 +821,7 @@ main {
 @media (max-width: 900px) {
   body {
     overflow-y: auto; /* safety valve on short phones */
+    overflow-x: hidden; /* classic-scrollbar width must never cause h-scroll */
   }
   /* let the page flow naturally instead of squeezing into the viewport —
      otherwise flex shrinks the matchline behind the card */
