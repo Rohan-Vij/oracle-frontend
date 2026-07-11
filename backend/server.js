@@ -30,7 +30,7 @@ const VOTER_ID_RE = /^[A-Za-z0-9-]{8,64}$/
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*')
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-  res.set('Access-Control-Allow-Headers', 'Content-Type')
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   if (req.method === 'OPTIONS') return res.status(204).end()
   next()
 })
@@ -58,6 +58,62 @@ function shape(counts, closesAt) {
 /* /healthz is reserved by Google's frontend on run.app and never reaches
    the container — keep the health probe under /api. */
 app.get('/api/health', (req, res) => res.json({ ok: true }))
+
+/* ---------------------------------------------------------------------
+ * Live scores: proxy API-Football through a shared 60s cache so every
+ * visitor draws from ONE upstream request budget (free tier: 100/day).
+ * Single-flight guard collapses concurrent misses into one upstream call.
+ * ------------------------------------------------------------------- */
+const FOOTBALL_KEY = process.env.APIFOOTBALL_KEY || ''
+const LIVE_TTL_MS = 60_000
+let liveCache = { at: 0, data: null }
+let liveInflight = null
+
+async function fetchUpstreamLive() {
+  const r = await fetch('https://v3.football.api-sports.io/fixtures?live=all', {
+    headers: { 'x-rapidapi-key': FOOTBALL_KEY },
+  })
+  if (!r.ok) throw new Error(`upstream ${r.status}`)
+  const body = await r.json()
+  /* API-Sports reports auth/quota/suspension failures as HTTP 200 with
+     an errors object — never cache those as "no live games" */
+  if (body.errors && Object.keys(body.errors).length) {
+    throw new Error(`upstream error: ${JSON.stringify(body.errors)}`)
+  }
+  const fixtures = (body.response || []).map((f) => ({
+    id: f.fixture?.id,
+    minute: f.fixture?.status?.elapsed ?? null,
+    status: f.fixture?.status?.short ?? '',
+    league: f.league?.name ?? '',
+    home: f.teams?.home?.name ?? '',
+    away: f.teams?.away?.name ?? '',
+    homeGoals: f.goals?.home ?? 0,
+    awayGoals: f.goals?.away ?? 0,
+  }))
+  liveCache = { at: Date.now(), data: { fixtures, fetchedAt: new Date().toISOString() } }
+  return liveCache.data
+}
+
+app.get('/api/live', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=30')
+  if (!FOOTBALL_KEY) return res.status(503).json({ error: 'live scores not configured' })
+  if (liveCache.data && Date.now() - liveCache.at < LIVE_TTL_MS) {
+    return res.json(liveCache.data)
+  }
+  try {
+    if (!liveInflight) {
+      liveInflight = fetchUpstreamLive().finally(() => {
+        liveInflight = null
+      })
+    }
+    res.json(await liveInflight)
+  } catch (err) {
+    console.error('live proxy failed', err)
+    /* stale beats nothing */
+    if (liveCache.data) return res.json(liveCache.data)
+    res.status(502).json({ error: 'upstream failed' })
+  }
+})
 
 app.get('/api/poll/:matchId', async (req, res) => {
   const { matchId } = req.params
@@ -123,6 +179,72 @@ app.post('/api/poll/:matchId', async (req, res) => {
     res.json(shape(result.counts, result.closesAt))
   } catch (err) {
     console.error('POST vote failed', err)
+    res.status(500).json({ error: 'internal' })
+  }
+})
+
+/* ---------------------------------------------------------------------
+ * Hermes prediction: JSON document the in-game Hermes agent pushes to.
+ * Reads are public; writes need the PREDICTION_TOKEN bearer secret.
+ *
+ *   GET  /api/prediction/:matchId → { pick, blurb, reasoning, agents, updatedAt }
+ *   POST /api/prediction/:matchId (Authorization: Bearer <token>) → { ok }
+ * ------------------------------------------------------------------- */
+const PREDICTION_TOKEN = process.env.PREDICTION_TOKEN || ''
+const predRef = (matchId) => db.collection('whowins_predictions').doc(matchId)
+const str = (v, max) => (typeof v === 'string' ? v.slice(0, max) : null)
+
+function sanitizePrediction(body) {
+  const pick = body?.pick
+  if (!PICKS.includes(pick)) return null
+  const blurb = str(body.blurb, 500)
+  if (!blurb) return null
+  const reasoning = Array.isArray(body.reasoning)
+    ? body.reasoning
+        .slice(0, 8)
+        .map((r) => ({ title: str(r?.title, 80), body: str(r?.body, 600) }))
+        .filter((r) => r.title && r.body)
+    : []
+  const agents = Array.isArray(body.agents)
+    ? body.agents
+        .slice(0, 8)
+        .map((a) => ({ id: str(a?.id, 40), desc: str(a?.desc, 120), lean: str(a?.lean, 80) }))
+        .filter((a) => a.id && a.lean)
+    : []
+  const source = str(body.source, 120) || 'Hermes'
+  return { pick, blurb, reasoning, agents, source }
+}
+
+app.get('/api/prediction/:matchId', async (req, res) => {
+  const { matchId } = req.params
+  if (!MATCH_ID_RE.test(matchId)) return res.status(400).json({ error: 'bad matchId' })
+  try {
+    const snap = await predRef(matchId).get()
+    if (!snap.exists) return res.status(404).json({ error: 'no prediction yet' })
+    const d = snap.data()
+    res.json({
+      ...d.payload,
+      updatedAt: d.updatedAt?.toDate?.().toISOString() ?? null,
+    })
+  } catch (err) {
+    console.error('GET prediction failed', err)
+    res.status(500).json({ error: 'internal' })
+  }
+})
+
+app.post('/api/prediction/:matchId', async (req, res) => {
+  const { matchId } = req.params
+  if (!MATCH_ID_RE.test(matchId)) return res.status(400).json({ error: 'bad matchId' })
+  const auth = req.headers.authorization || ''
+  if (!PREDICTION_TOKEN || auth !== `Bearer ${PREDICTION_TOKEN}`)
+    return res.status(401).json({ error: 'unauthorized' })
+  const payload = sanitizePrediction(req.body)
+  if (!payload) return res.status(400).json({ error: 'bad prediction payload' })
+  try {
+    await predRef(matchId).set({ payload, updatedAt: FieldValue.serverTimestamp() })
+    res.json({ ok: true })
+  } catch (err) {
+    console.error('POST prediction failed', err)
     res.status(500).json({ error: 'internal' })
   }
 })

@@ -8,7 +8,7 @@ import {
   localCounts,
 } from '../services/poll.js'
 
-const ORDER = ['NOR', 'DRW', 'ENG']
+const ORDER = ['NOR', 'ENG'] /* two-way ballot: draw removed */
 
 /* Optimistically move a vote between buckets while the POST is in flight. */
 function shifted(live, from, to) {
@@ -82,14 +82,10 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
             <button
               key={k}
               ref={i === 0 ? firstChoiceRef : undefined}
-              className="choice"
+              className={`choice ${k.toLowerCase()}`}
               onClick={() => cast(k)}
             >
-              {flagSrcs[k] ? (
-                <img className="cflag" src={flagSrcs[k]} alt="" aria-hidden="true" />
-              ) : (
-                <span className="cswatch" aria-hidden="true" />
-              )}
+              <img className="cflag" src={flagSrcs[k]} alt="" aria-hidden="true" />
               {outcomes[k].label}
             </button>
           ))}
@@ -136,7 +132,7 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
         <div className="modelrow">
           <img className="modelrow-flag" src={flagSrcs[modelPick]} alt="" aria-hidden="true" />
           <span className="modelrow-pick">
-            <span className="modelrow-kicker">The Hermes agent&rsquo;s pick</span>
+            <span className="modelrow-kicker">The Hermes agent&rsquo;s pick · updated {updated}</span>
             {outcomes[modelPick].label} to win
           </span>
         </div>
@@ -161,7 +157,7 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
             ))}
           </div>
           <div className="rmeta">
-            {prediction.source} · Updated {updated} · For entertainment, not betting advice
+            {prediction.source} · For entertainment, not betting advice
           </div>
         </div>
       </div>

@@ -1,0 +1,29 @@
+{
+  "pick": "ENG",
+  "blurb": "England’s midfield control and set-piece edge should be enough to survive Haaland. It is a close call.",
+  "source": "Hermes · consensus of 4 sub-agents",
+  "reasoning": [
+    {
+      "title": "Midfield geometry",
+      "body": "Rice and Bellingham close down the half-spaces where Norway start most of their attacks. Norway live on fast breaks, and the numbers say those chances dry up against this England midfield."
+    },
+    {
+      "title": "The Haaland variable",
+      "body": "Haaland is the reason this call stays narrow. He turns half-chances into goals, and one touch can decide a knockout. Nobody at the desk thinks this is comfortable."
+    },
+    {
+      "title": "Set pieces",
+      "body": "England attack dead balls better than anyone Norway have faced this cycle. In a game this tight, corners and free kicks are often the whole margin."
+    },
+    {
+      "title": "Market drift",
+      "body": "The books moved toward England after midweek reports raised doubts about Ødegaard’s ankle. Our agents had priced that in a day earlier, which firms up the call."
+    }
+  ],
+  "agents": [
+    { "id": "Poisson-xG", "desc": "Shot-quality simulation, ten thousand runs", "lean": "England, narrowly" },
+    { "id": "Elo-market", "desc": "Rating prior blended with market movement", "lean": "England, firmly" },
+    { "id": "Bayes-form", "desc": "Rolling form model over the last 18 matches", "lean": "England, narrowly" },
+    { "id": "Scout-LLM", "desc": "Reads team news, pressers, injury reports", "lean": "England, with reservations" }
+  ]
+}

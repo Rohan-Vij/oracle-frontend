@@ -61,7 +61,66 @@ body {
 .app {
   height: 100%;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
+}
+
+/* ---------- live ticker ---------- */
+.ticker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 24px;
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 0;
+}
+.ticker-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ink);
+  flex: none;
+}
+.ticker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--espn-red);
+  animation: livepulse 2s ease-in-out infinite;
+}
+.ticker-track {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+  color: var(--ink-2);
+  mask-image: linear-gradient(to right, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, black 92%, transparent);
+}
+.ticker-track::-webkit-scrollbar {
+  display: none;
+}
+.ticker-item b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.ticker-min {
+  color: var(--espn-red);
+  font-weight: 600;
+}
+.where.live {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 600;
 }
 /* the match footage, ghosted behind the glass */
 .videobg {
@@ -144,6 +203,7 @@ header .tag.right {
 
 /* ---------- main ---------- */
 main {
+  grid-row: 3; /* stay in the stretch row even when the ticker is absent */
   display: grid;
   grid-template-columns: minmax(210px, 260px) 1fr minmax(210px, 260px);
   gap: clamp(18px, 3vw, 48px);
@@ -451,6 +511,27 @@ main {
 .choice:active {
   transform: scale(0.96); /* gel press */
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+/* country colors: Norway in flag red, England in St George white/red */
+.choice.nor {
+  background: linear-gradient(180deg, #f0393d, #d0121f);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(214, 26, 36, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.choice.nor:hover {
+  background: linear-gradient(180deg, #f74d51, #de1a28);
+  box-shadow: 0 8px 22px rgba(214, 26, 36, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.choice.eng {
+  background: #fff;
+  border: 2px solid #cf081f;
+  color: #cf081f;
+  box-shadow: 0 6px 18px rgba(207, 8, 31, 0.18), inset 0 1px 0 #fff;
+}
+.choice.eng:hover {
+  background: #cf081f;
+  color: #fff;
 }
 .choice .cflag {
   width: 21px;

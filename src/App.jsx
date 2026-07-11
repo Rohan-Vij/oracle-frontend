@@ -1,6 +1,10 @@
+import { useEffect, useState } from 'react'
 import { FEED } from './data/feed.js'
 import Roster from './components/Roster.jsx'
 import Poll from './components/Poll.jsx'
+import LiveTicker from './components/LiveTicker.jsx'
+import { fetchLiveFixtures } from './services/liveScores.js'
+import { fetchPrediction } from './services/prediction.js'
 
 const BASE = import.meta.env.BASE_URL
 const resolve = (src) => (src && !/^https?:/.test(src) ? BASE + src : src)
@@ -20,10 +24,53 @@ function Flag({ className = 'flag', src, alt }) {
 }
 
 export default function App() {
-  const { meta, prediction, outcomes, teams } = FEED
+  const { meta, outcomes, teams } = FEED
   /* skip the 5MB backdrop video on phones: bandwidth, battery, and the
      glass has little room to shine there anyway */
   const showVideo = window.matchMedia('(min-width: 901px)').matches
+
+  /* live scores — backend caches upstream for 60s, so polling every
+     60s costs at most one API-Football request per minute in total */
+  const [liveFixtures, setLiveFixtures] = useState(null)
+  useEffect(() => {
+    const load = () => {
+      if (document.hidden) return
+      fetchLiveFixtures().then((f) => {
+        if (f) setLiveFixtures(f)
+      })
+    }
+    load()
+    const id = setInterval(load, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  /* if our fixture is in play, the matchline becomes the scoreboard */
+  const ourMatch = liveFixtures?.find(
+    (f) =>
+      /norway/i.test(f.home + f.away) && /england/i.test(f.home + f.away)
+  )
+
+  /* Hermes updates its prediction mid-game; poll for the latest push */
+  const [livePrediction, setLivePrediction] = useState(null)
+  useEffect(() => {
+    const load = () => {
+      if (document.hidden) return
+      fetchPrediction().then((p) => {
+        if (p) setLivePrediction(p)
+      })
+    }
+    load()
+    const id = setInterval(load, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const prediction = livePrediction ?? FEED.prediction
+  const updatedLabel = livePrediction?.updatedAt
+    ? new Date(livePrediction.updatedAt).toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : meta.updated
 
   return (
     <div className="app">
@@ -44,6 +91,8 @@ export default function App() {
         <span className="tag right">{meta.date}</span>
       </header>
 
+      <LiveTicker fixtures={liveFixtures} />
+
       <main>
         <Roster team={teams.NOR} />
 
@@ -59,9 +108,16 @@ export default function App() {
                 <span className="nm">England</span>
                 <Flag src={teams.ENG.flag} alt="England flag" />
               </div>
-              <div className="where">
-                {meta.venue} · Kickoff {meta.kickoff} · {meta.kickoffLocal}
-              </div>
+              {ourMatch ? (
+                <div className="where live">
+                  <span className="ticker-dot" aria-hidden="true" /> Live {ourMatch.minute}′ ·
+                  Norway {ourMatch.homeGoals}–{ourMatch.awayGoals} England
+                </div>
+              ) : (
+                <div className="where">
+                  {meta.venue} · Kickoff {meta.kickoff} · {meta.kickoffLocal}
+                </div>
+              )}
             </div>
           </div>
 
@@ -70,7 +126,7 @@ export default function App() {
             flagSrcs={{ NOR: resolve(teams.NOR.flag), ENG: resolve(teams.ENG.flag) }}
             modelPick={prediction.pick}
             prediction={prediction}
-            updated={meta.updated}
+            updated={updatedLabel}
           />
 
           <div className="zone bottom">

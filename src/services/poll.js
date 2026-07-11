@@ -8,7 +8,7 @@
  */
 export const MATCH_ID = 'nor-eng-qf'
 
-const API_BASE =
+export const API_BASE =
   import.meta.env.VITE_POLL_API || 'https://whowins-poll-api-176753051774.us-central1.run.app'
 
 const KEY = 'whowins-poll-nor-eng-qf'
