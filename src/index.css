@@ -1,0 +1,418 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --bg: #ffffff;
+  --ink: #111111;
+  --ink-2: #8a8a86;
+  --line: #e9e7e2;
+  /* poll series — diverging pair validated 2026-07-11 on #ffffff:
+     lightness band, chroma floor, CVD ΔE 114+, both ≥3:1. Draw is the
+     neutral midpoint and always carries a direct label. */
+  --nor: #2a78d6;
+  --drw: #dedcd5;
+  --eng: #c98500;
+  /* partner brands, sampled from their live sites 2026-07-11 */
+  --polymarket: #386bf0;
+  --kalshi: #28cc95;
+  --espn-red: #cc0000;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button {
+  font: inherit;
+}
+a {
+  text-decoration: none;
+}
+
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* ---------- header ---------- */
+header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 11px 28px;
+  border-bottom: 2px solid var(--ink);
+}
+/* ESPN-style network plate: white italic Helvetica Bold on red */
+.brand {
+  justify-self: start;
+  font-size: 17px;
+  font-style: italic;
+  background: var(--espn-red);
+  color: #fff;
+  padding: 6px 14px 7px 12px;
+}
+.brand i {
+  font-style: italic;
+  color: #fff;
+}
+.tag {
+  font-size: 11.5px;
+  color: var(--ink-2);
+}
+header .tag.right {
+  text-align: right;
+}
+
+/* ---------- main ---------- */
+main {
+  display: grid;
+  grid-template-columns: minmax(200px, 250px) 1fr minmax(200px, 250px);
+  gap: clamp(24px, 4vw, 72px);
+  padding: clamp(14px, 2.6vh, 30px) clamp(24px, 3.5vw, 56px);
+  min-height: 0;
+}
+
+/* ---------- rosters ---------- */
+.roster {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.roster h3 {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.coach {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.coach .who .nm {
+  font-size: 13.5px;
+}
+.coach .who .role {
+  font-size: 10px;
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+.players {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  padding-top: 4px;
+}
+.player {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.player .nm {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player .pos {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--ink-2);
+}
+.player .ava {
+  transition: transform 0.16s ease;
+}
+.player:hover .ava {
+  transform: scale(2.1);
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ---------- avatars ---------- */
+.ava {
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  filter: grayscale(1) contrast(1.05);
+  flex: none;
+  background: #f1efea;
+}
+.ava-fallback {
+  border-radius: 50%;
+  flex: none;
+  background: #f1efea;
+  color: #a3a09a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- core ---------- */
+.core {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: 0;
+}
+.core > * {
+  position: relative;
+  z-index: 1;
+}
+/* the two cutout figures stand at the page's baseline, flanking the poll */
+.cutout {
+  position: absolute;
+  bottom: 0;
+  height: min(52vh, 78%);
+  width: auto;
+  z-index: 0;
+  filter: grayscale(1) contrast(1.06);
+  pointer-events: none;
+}
+.cutout.left {
+  left: calc(-1 * clamp(4px, 1.6vw, 26px));
+}
+.cutout.right {
+  right: calc(-1 * clamp(4px, 1.6vw, 26px));
+}
+
+.tie {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.tie .flag {
+  width: 40px;
+  height: 30px;
+  object-fit: cover;
+  outline: 1px solid var(--line);
+}
+.tie .nm {
+  font-size: clamp(19px, 2.2vw, 25px);
+}
+.tie .vs {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.where {
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-top: 6px;
+}
+
+/* ---------- the model's pick ---------- */
+.hero {
+  margin-top: clamp(10px, 2.4vh, 24px);
+}
+.hero .pick-label {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.hero .pick-flag {
+  width: 52px;
+  height: 39px;
+  object-fit: cover;
+  outline: 1px solid var(--line);
+  margin: clamp(6px, 1.2vh, 12px) auto 2px;
+  display: block;
+}
+.hero .pick {
+  font-size: clamp(32px, 5.6vh, 50px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.hero .blurb {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 46ch;
+  margin: clamp(6px, 1.2vh, 12px) auto 0;
+}
+.hero .blurb .src {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+/* ---------- poll, center stage ---------- */
+.pollzone {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.poll {
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg);
+  border-top: 2px solid var(--ink);
+  padding-top: clamp(10px, 1.8vh, 16px);
+}
+.poll h4 {
+  font-size: 14px;
+}
+.choices {
+  display: flex;
+  gap: 10px;
+  margin-top: 13px;
+}
+.choice {
+  flex: 1;
+  padding: clamp(12px, 2.2vh, 17px) 0;
+  border: 2px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.choice:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 13px;
+}
+.result {
+  display: grid;
+  grid-template-columns: 76px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.result .lbl {
+  text-align: left;
+}
+.result .track {
+  height: 11px;
+  background: #f1efea;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.result .fill {
+  display: block; /* inline spans ignore width/height — bars vanish without this */
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.result .val {
+  text-align: right;
+}
+.results-wrap:focus {
+  outline: none; /* programmatic focus target; role=status handles announcement */
+}
+.pollmeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 11px;
+  font-size: 10.5px;
+  color: var(--ink-2);
+}
+.pollmeta .change {
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+/* ---------- bet links ---------- */
+.betrow {
+  width: 100%;
+  max-width: 560px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: clamp(8px, 1.6vh, 14px);
+}
+.bet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: clamp(10px, 1.8vh, 14px) 0;
+  font-size: 12.5px;
+  border-radius: 4px;
+  transition: filter 0.15s;
+}
+.bet:hover {
+  filter: brightness(0.94);
+}
+.bet.polymarket {
+  background: var(--polymarket);
+  color: #fff;
+}
+.bet.polymarket img {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+.bet.kalshi {
+  background: #fff;
+  border: 2px solid var(--kalshi);
+  color: var(--ink);
+}
+.bet.kalshi .wordmark {
+  height: 14px;
+  width: auto;
+  transform: translateY(1px);
+}
+
+/* ---------- footer ---------- */
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 9px 28px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--ink-2);
+}
+footer span {
+  white-space: nowrap;
+}
+
+@media (max-width: 1360px) {
+  .cutout {
+    height: min(44vh, 70%);
+  }
+}
+@media (max-width: 1150px) {
+  .cutout {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+  .player:hover .ava {
+    transform: none;
+  }
+}

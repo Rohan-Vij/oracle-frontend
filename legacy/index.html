@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORACLE — Norway vs England · World Cup Quarter-Final</title>
+<style>
+  :root{
+    --page:#0c0c0b;
+    --panel:#141412;
+    --panel-2:#181816;
+    --ink:#f4f1ea;
+    --ink-2:#b9b4a8;
+    --ink-3:#8a867c;
+    --hairline:rgba(244,241,234,.12);
+    --hairline-soft:rgba(244,241,234,.07);
+    --gold:#d0a848;
+    --gold-bright:#e3c06a;
+    /* series — diverging: two validated poles + neutral draw midpoint
+       (validated 2026-07-11: #4c86c0/#c98500 pass lightness band, chroma
+       floor, CVD ΔE 77+, ≥3:1 on #141412; draw gray carries direct labels) */
+    --s-nor:#4c86c0;
+    --s-drw:#4e4c47;
+    --s-eng:#c98500;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(120% 90% at 50% -10%, rgba(208,168,72,.05), transparent 55%),
+      radial-gradient(140% 120% at 50% 115%, rgba(0,0,0,.5), transparent 60%),
+      var(--page);
+    color:var(--ink);
+    font-family:var(--sans);
+    overflow:hidden;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+  }
+  .caps{font-family:var(--sans);text-transform:uppercase;letter-spacing:.16em}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ------- masthead ------- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 22px;border-bottom:1px solid var(--hairline);
+  }
+  .wordmark{display:flex;align-items:baseline;gap:12px}
+  .wordmark .mark{
+    font-family:var(--serif);font-size:24px;letter-spacing:.34em;font-weight:700;
+  }
+  .wordmark .mark em{font-style:normal;color:var(--gold)}
+  .wordmark .sub{font-size:9.5px;color:var(--ink-3)}
+  .masthead-mid{font-size:10.5px;color:var(--ink-2);text-align:center}
+  .masthead-mid b{color:var(--ink);font-weight:600}
+  .feedstate{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--ink-3)}
+  .live{display:inline-flex;align-items:center;gap:6px;color:var(--gold-bright)}
+  .live .dot{width:6px;height:6px;border-radius:50%;background:var(--gold-bright);animation:pulse 2.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* ------- main grid ------- */
+  main{
+    display:grid;
+    grid-template-columns:clamp(250px,23vw,330px) 1fr clamp(250px,23vw,330px);
+    min-height:0;
+  }
+
+  /* ------- team panels ------- */
+  .team{
+    background:var(--panel);
+    display:flex;flex-direction:column;min-height:0;
+    padding:16px 18px 12px;
+  }
+  .team.away{border-right:1px solid var(--hairline)}
+  .team.home{border-left:1px solid var(--hairline)}
+  .team-head{display:flex;align-items:center;gap:13px;padding-bottom:12px}
+  .crest{
+    width:52px;height:52px;border-radius:50%;flex:none;
+    border:1px solid var(--gold);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--serif);color:var(--gold-bright);
+    background:radial-gradient(circle at 50% 30%, rgba(208,168,72,.14), transparent 70%);
+  }
+  .crest .mono{font-size:15px;letter-spacing:.12em;font-weight:700;text-indent:.12em}
+  .crest .star{font-size:8px;line-height:1;color:var(--gold)}
+  .team-title h2{font-family:var(--serif);font-size:clamp(20px,2.1vw,27px);font-weight:700;letter-spacing:.02em}
+  .team-title .meta{font-size:9.5px;color:var(--ink-3);margin-top:3px}
+  .team-title .meta b{color:var(--ink-2);font-weight:600}
+  .formrow{display:flex;align-items:center;gap:5px;margin-top:6px}
+  .formrow .lbl{font-size:8.5px;color:var(--ink-3);margin-right:2px}
+  .pip{width:14px;height:14px;border-radius:3px;font-size:8px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;color:var(--page)}
+  .pip.W{background:var(--ink-2)}
+  .pip.D{background:#6a675f;color:var(--ink)}
+  .pip.L{background:#3a3835;color:var(--ink-3)}
+
+  .coach{
+    display:flex;align-items:center;gap:11px;
+    border-top:1px solid var(--hairline-soft);border-bottom:1px solid var(--hairline-soft);
+    padding:9px 0;
+  }
+  .coach .photo{width:42px;height:42px}
+  .coach .who .name{font-family:var(--serif);font-size:14.5px;font-weight:700}
+  .coach .who .role{font-size:8.5px;color:var(--ink-3);margin-top:2px}
+
+  .roster{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly;padding:6px 0}
+  .player{display:flex;align-items:center;gap:9px;font-size:11.5px;min-height:0}
+  .player .photo{width:24px;height:24px;flex:none}
+  .player .no{width:18px;text-align:right;color:var(--ink-3);font-size:10px;flex:none}
+  .player .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);letter-spacing:.01em}
+  .player .nm .cap{color:var(--gold-bright);font-size:9px;vertical-align:super}
+  .player .nm .flag{color:var(--ink-3);font-size:9px}
+  .player .pos{margin-left:auto;color:var(--ink-3);font-size:9px;letter-spacing:.1em;flex:none}
+  .photo{border-radius:3px;overflow:hidden;background:#222;filter:grayscale(1) contrast(1.05)}
+  .photo svg{display:block;width:100%;height:100%}
+
+  .team-stats{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
+    background:var(--hairline-soft);border-top:1px solid var(--hairline-soft);padding-top:1px;
+  }
+  .stat{background:var(--panel);padding:7px 2px 3px;text-align:center}
+  .stat .v{font-family:var(--serif);font-size:16px;font-weight:700}
+  .stat .k{font-size:8px;color:var(--ink-3);margin-top:2px}
+
+  /* ------- oracle (center) ------- */
+  .oracle{
+    display:flex;flex-direction:column;min-height:0;justify-content:space-between;
+    padding:14px clamp(18px,3vw,44px) 10px;gap:clamp(6px,1.4vh,14px);
+  }
+  .matchline{text-align:center;border-bottom:1px solid var(--hairline-soft);padding-bottom:clamp(6px,1.2vh,12px)}
+  .matchline .stage{font-size:10px;color:var(--gold-bright)}
+  .matchline .venue{font-size:10.5px;color:var(--ink-2);margin-top:5px}
+  .matchline .venue b{color:var(--ink);font-weight:600}
+  .matchline .clock{font-size:10px;color:var(--ink-3);margin-top:5px}
+  .matchline .clock .t{color:var(--ink);font-weight:600}
+
+  .hero{text-align:center}
+  .hero .eyebrow{font-size:9.5px;color:var(--ink-3)}
+  .hero .pct{
+    font-family:var(--serif);font-weight:700;
+    font-size:clamp(46px,9.5vh,84px);line-height:1.02;
+    letter-spacing:-.01em;margin-top:2px;
+  }
+  .hero .pct small{font-size:.45em;color:var(--ink-2);font-weight:400}
+  .hero .call{font-family:var(--serif);font-size:clamp(15px,2.4vh,21px);font-style:italic;color:var(--gold-bright);margin-top:1px}
+  .hero .subline{font-size:10px;color:var(--ink-3);margin-top:6px}
+  .hero .subline b{color:var(--ink-2);font-weight:600}
+
+  /* meter */
+  .meter-wrap{padding:0 clamp(0px,1vw,14px)}
+  .meter{display:flex;height:18px;border-radius:4px;overflow:hidden;gap:2px;background:transparent}
+  .seg{position:relative;display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;transition:opacity .18s ease, filter .18s ease;cursor:default}
+  .seg:first-child{border-radius:4px 0 0 4px}
+  .seg:last-child{border-radius:0 4px 4px 0}
+  .seglabels{display:flex;gap:2px;margin-top:5px}
+  .seglabel{font-size:8.5px;color:var(--ink-3);text-align:center;transition:opacity .18s ease}
+  .legend{display:flex;justify-content:center;gap:22px;margin-top:clamp(5px,1vh,10px);font-size:9.5px;color:var(--ink-2)}
+  .legend .it{display:flex;align-items:center;gap:6px;transition:opacity .18s ease}
+  .legend .sw{width:9px;height:9px;border-radius:2px}
+  .legend .odds{color:var(--ink-3)}
+
+  /* rationale */
+  .rationale{border-top:1px solid var(--hairline-soft);border-bottom:1px solid var(--hairline-soft);
+    padding:clamp(7px,1.4vh,13px) 2px;min-height:0;overflow:hidden}
+  .rationale h3{font-size:9.5px;color:var(--ink-3);font-weight:600;margin-bottom:clamp(5px,1vh,9px)}
+  .rationale h3 b{color:var(--gold-bright);font-weight:600}
+  .rationale ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:clamp(5px,1.1vh,10px) 22px}
+  .rationale li{font-family:var(--serif);font-size:clamp(11px,1.8vh,13px);line-height:1.45;color:var(--ink-2)}
+  .rationale li b{color:var(--ink);font-weight:700;font-style:italic}
+
+  /* agents */
+  .agents{min-height:0}
+  .agents h3{font-size:9.5px;color:var(--ink-3);font-weight:600;margin-bottom:7px;display:flex;justify-content:space-between}
+  .agents h3 .ok{color:var(--ink-2)}
+  .agent{display:grid;grid-template-columns:118px 1fr 64px;align-items:center;gap:12px;padding:4px 0}
+  .agent + .agent{border-top:1px solid var(--hairline-soft)}
+  .agent .id{font-size:9.5px;letter-spacing:.1em;color:var(--ink-2);white-space:nowrap}
+  .agent .bar{display:flex;height:8px;gap:2px;border-radius:3px;overflow:hidden}
+  .agent .bar i{transition:opacity .18s ease}
+  .agent .bar i:first-child{border-radius:3px 0 0 3px}
+  .agent .bar i:last-child{border-radius:0 3px 3px 0}
+  .agent .call{font-size:10px;color:var(--ink);text-align:right;white-space:nowrap}
+  .agent .call small{color:var(--ink-3)}
+
+  /* dim non-focused outcome */
+  body[data-focus] [data-outcome]{opacity:.35}
+  body[data-focus="NOR"] [data-outcome="NOR"],
+  body[data-focus="DRW"] [data-outcome="DRW"],
+  body[data-focus="ENG"] [data-outcome="ENG"]{opacity:1}
+
+  /* ------- footer ------- */
+  footer{
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:7px 22px;border-top:1px solid var(--hairline);
+    font-size:9px;color:var(--ink-3);
+  }
+  footer span{white-space:nowrap}
+  footer .mid{font-style:italic;font-family:var(--serif);font-size:10px}
+
+  /* tooltip */
+  .tip{
+    position:fixed;z-index:10;pointer-events:none;opacity:0;transition:opacity .12s ease;
+    background:#1f1e1b;border:1px solid var(--hairline);border-radius:4px;
+    padding:7px 10px;font-size:10px;color:var(--ink-2);max-width:230px;line-height:1.5;
+    box-shadow:0 6px 18px rgba(0,0,0,.5);
+  }
+  .tip b{color:var(--ink)}
+  .tip .tt{color:var(--gold-bright);letter-spacing:.1em;font-size:8.5px}
+
+  @media (max-height:760px){
+    header{padding:7px 22px}
+    .team{padding:10px 16px 8px}
+    .coach{padding:6px 0}
+    .stat{padding:5px 2px 2px}
+    .stat .v{font-size:14px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">
+    <div class="mark caps"><em>◆</em> ORACLE</div>
+    <div class="sub caps">Prediction Desk</div>
+  </div>
+  <div class="masthead-mid caps"><b>FIFA World Cup 2026</b> &nbsp;·&nbsp; United States · Canada · Mexico &nbsp;·&nbsp; Saturday, July 11</div>
+  <div class="feedstate caps num">
+    <span id="agents-ok">4/4 agents reporting</span>
+    <span class="live"><span class="dot"></span> feed live</span>
+  </div>
+</header>
+
+<main>
+  <section class="team away" id="panel-NOR"></section>
+
+  <section class="oracle">
+    <div class="matchline">
+      <div class="stage caps">Quarter-Final · Match 59</div>
+      <div class="venue"><b>Kansas City Stadium</b> — Kansas City &nbsp;·&nbsp; Kickoff <b>2:00 PM PST</b></div>
+      <div class="clock caps num" id="clock">Model locks at kickoff</div>
+    </div>
+
+    <div class="hero">
+      <div class="eyebrow caps" id="hero-eyebrow"></div>
+      <div class="pct num" id="hero-pct"></div>
+      <div class="call" id="hero-call"></div>
+      <div class="subline caps" id="hero-sub"></div>
+    </div>
+
+    <div class="meter-wrap">
+      <div class="meter" id="meter" role="img" aria-label="Win probability: Norway 27%, Draw 19%, England 54%"></div>
+      <div class="seglabels caps" id="seglabels"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="rationale">
+      <h3 class="caps">Why the Oracle leans <b>England</b> — synthesis of 4 agents</h3>
+      <ul id="rationale"></ul>
+    </div>
+
+    <div class="agents">
+      <h3 class="caps"><span>Agent consensus</span><span class="ok num" id="agents-meta"></span></h3>
+      <div id="agent-rows"></div>
+    </div>
+  </section>
+
+  <section class="team home" id="panel-ENG"></section>
+</main>
+
+<footer class="caps">
+  <span class="num" id="build" title="quant desk build"></span>
+  <span class="mid">Model estimates, refreshed every 90s — for entertainment only, not betting advice.</span>
+  <span class="num" id="updated"></span>
+</footer>
+
+<div class="tip" id="tip"></div>
+
+<script>
+/* ============================================================
+   FEED — this object mirrors the payload published by the
+   backend agent swarm. Swap in the live endpoint when wired up.
+   ============================================================ */
+const FEED = {
+  meta:{
+    version:"ORACLE v3.1.4", build:"quant desk build 2026.07.11",
+    updated:"11:07 AM PST", kickoffHourLocal:14,
+  },
+  prediction:{
+    pick:"ENG",
+    probs:{ NOR:0.27, DRW:0.19, ENG:0.54 },
+    mostLikelyScore:"2–1",
+    agreement:"High", sigma:2.1,
+  },
+  outcomes:{
+    NOR:{ label:"Norway win",  short:"Norway",  color:"var(--s-nor)", ink:"#0c0c0b" },
+    DRW:{ label:"Draw",        short:"Draw",    color:"var(--s-drw)", ink:"#f4f1ea" },
+    ENG:{ label:"England win", short:"England", color:"var(--s-eng)", ink:"#0c0c0b" },
+  },
+  rationale:[
+    ["Midfield geometry.","Rice and Bellingham compress the half-spaces where Norway generate 68% of their progressive carries; transition volume — Norway's oxygen — projects 22% below their tournament baseline."],
+    ["The Haaland variable.","0.71 xG per 90 this cycle keeps Norway live in every game state and is the single largest reason their tail isn't thinner. One touch decides a knockout."],
+    ["Set-piece delta.","England's 61% first-contact rate on dead balls against Norway's 44% concedes roughly 0.3 xG per match — the quiet edge in a tight bracket."],
+    ["Market drift.","The book moved three points toward England after Wednesday's training reports flagged Ødegaard's ankle. Our agents had priced it Tuesday."],
+  ],
+  agents:[
+    { id:"POISSON-XG",  desc:"Bivariate Poisson over shot-quality chains, 10k sims", weight:0.25, probs:{NOR:0.29,DRW:0.20,ENG:0.51} },
+    { id:"ELO-MARKET",  desc:"Elo prior blended with closing-line movement",         weight:0.30, probs:{NOR:0.24,DRW:0.18,ENG:0.58} },
+    { id:"BAYES-FORM",  desc:"Hierarchical Bayes on rolling 18-match form",          weight:0.25, probs:{NOR:0.28,DRW:0.20,ENG:0.52} },
+    { id:"SCOUT-LLM",   desc:"Language model over team news, pressers, injuries",    weight:0.20, probs:{NOR:0.27,DRW:0.18,ENG:0.55} },
+  ],
+  teams:{
+    NOR:{
+      name:"Norway", monogram:"NOR", stars:0, nickname:"Løvene",
+      rank:11, path:"Group I winners", form:["W","W","W","D","W"],
+      coach:{ name:"Ståle Solbakken", role:"Head Coach · since 2020" },
+      stats:[["2.1","xG / 90"],["0.9","xGA / 90"],["46%","Possession"]],
+      xi:[
+        {no:1, name:"Ørjan Nyland",       pos:"GK"},
+        {no:2, name:"Julian Ryerson",     pos:"RB"},
+        {no:3, name:"Kristoffer Ajer",    pos:"CB"},
+        {no:5, name:"Leo Østigård",       pos:"CB"},
+        {no:18,name:"David Møller Wolfe", pos:"LB"},
+        {no:6, name:"Sander Berge",       pos:"DM"},
+        {no:8, name:"Patrick Berg",       pos:"CM"},
+        {no:10,name:"Martin Ødegaard",    pos:"AM", cap:true, flag:"fitness watch — ankle, 85% to start"},
+        {no:7, name:"Antonio Nusa",       pos:"LW"},
+        {no:9, name:"Erling Haaland",     pos:"ST"},
+        {no:19,name:"Alexander Sørloth",  pos:"ST"},
+      ],
+    },
+    ENG:{
+      name:"England", monogram:"ENG", stars:1, nickname:"The Three Lions",
+      rank:4, path:"Group L winners", form:["W","D","W","W","W"],
+      coach:{ name:"Thomas Tuchel", role:"Head Coach · since 2025" },
+      stats:[["2.4","xG / 90"],["0.7","xGA / 90"],["58%","Possession"]],
+      xi:[
+        {no:1, name:"Jordan Pickford",    pos:"GK"},
+        {no:2, name:"Reece James",        pos:"RB"},
+        {no:5, name:"John Stones",        pos:"CB"},
+        {no:6, name:"Marc Guéhi",         pos:"CB"},
+        {no:3, name:"Myles Lewis-Skelly", pos:"LB"},
+        {no:4, name:"Declan Rice",        pos:"DM"},
+        {no:10,name:"Jude Bellingham",    pos:"CM"},
+        {no:24,name:"Cole Palmer",        pos:"AM"},
+        {no:7, name:"Bukayo Saka",        pos:"RW"},
+        {no:11,name:"Phil Foden",         pos:"LW"},
+        {no:9, name:"Harry Kane",         pos:"ST", cap:true},
+      ],
+    },
+  },
+};
+
+/* ---------- engraved b&w portrait generator (no external assets) ---------- */
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h>>>0}
+function pick(h,arr,shift){return arr[(h>>>shift)%arr.length]}
+
+function portraitSVG(name,kind){
+  const h=hash(name+kind);
+  const uid="p"+h.toString(36);
+  const skins=["#ddd8cf","#c9c3b9","#aaa49a","#877f74","#655e55"];
+  const hairs=(kind==="coach")
+    ?["#3a3731","#57534b","#7d786e","#9b968b","#2b2925"]
+    :["#14130f","#2b2925","#403c36","#57534b","#6e6960"];
+  const bgs=[["#efece6","#d6d2c9"],["#e6e2da","#c9c4bb"],["#dedad2","#bfbab1"]];
+  const skin=pick(h,skins,3), hair=pick(h,hairs,7), bg=pick(h,bgs,13);
+  const style=(h>>>11)%5;                 // 0 bald · 1 buzz · 2 crop · 3 swept · 4 curly
+  const beard=((h>>>17)%10)<3;
+  const ry=12+((h>>>21)%3)*0.7;
+  const hairDepth=[0,5.5,8.5,11.5,7.5][style];
+
+  const body = kind==="coach"
+    ? `<path d="M7 64 Q10 45 23 41 L41 41 Q54 45 57 64 Z" fill="#1d1c19"/>
+       <path d="M27 41 L32 52 L37 41 L34 40 L30 40 Z" fill="#eae7e0"/>
+       <path d="M31.1 41.5 L32.9 41.5 L33.6 48.5 L32 51 L30.4 48.5 Z" fill="#0f0e0c"/>
+       <path d="M23 41 L29.5 41 L27 47 Z" fill="#12110f"/><path d="M41 41 L34.5 41 L37 47 Z" fill="#12110f"/>`
+    : `<path d="M7 64 Q10 45 23 41 L41 41 Q54 45 57 64 Z" fill="#26241f"/>
+       <path d="M26.5 41 Q32 45.5 37.5 41" fill="none" stroke="#4a463f" stroke-width="1.4"/>`;
+
+  const hairEl = style===0 ? "" :
+    `<g clip-path="url(#${uid}c)">
+       <rect x="19" y="9" width="26" height="${hairDepth}" fill="${hair}"/>
+       ${style===3?`<path d="M19 ${9+hairDepth} L45 ${5.5+hairDepth} L45 9 L19 9 Z" fill="${hair}"/>`:""}
+     </g>
+     ${style===4?[0,1,2,3,4].map(i=>`<circle cx="${23+i*4.5}" cy="${12.5-Math.sin(i/4*Math.PI)*2.2}" r="2.5" fill="${hair}"/>`).join(""):""}`;
+
+  const beardEl = beard
+    ? `<g clip-path="url(#${uid}c)"><rect x="19" y="27.5" width="26" height="12" fill="${hair}" opacity=".5"/></g>`
+    : "";
+
+  return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="${uid}b" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${bg[0]}"/><stop offset="1" stop-color="${bg[1]}"/>
+      </linearGradient>
+      <radialGradient id="${uid}v" cx=".5" cy=".4" r=".78">
+        <stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/>
+      </radialGradient>
+      <clipPath id="${uid}c"><ellipse cx="32" cy="${24}" rx="10.6" ry="${ry+.4}"/></clipPath>
+      <filter id="${uid}g"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="${h%97}" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
+    </defs>
+    <rect width="64" height="64" fill="url(#${uid}b)"/>
+    ${body}
+    <rect x="28.4" y="30" width="7.2" height="11" rx="2.4" fill="${skin}"/>
+    <ellipse cx="32" cy="32.5" rx="5.4" ry="2.2" fill="#000" opacity=".14"/>
+    <ellipse cx="21.6" cy="25" rx="1.7" ry="2.4" fill="${skin}"/>
+    <ellipse cx="42.4" cy="25" rx="1.7" ry="2.4" fill="${skin}"/>
+    <ellipse cx="32" cy="24" rx="10.5" ry="${ry}" fill="${skin}"/>
+    <path d="M25 15 Q21.5 21 22.5 30 Q24 34 27 35.5 Q23.5 30 24.5 22 Z" fill="#000" opacity=".1"/>
+    ${beardEl}
+    ${hairEl}
+    <rect width="64" height="64" fill="url(#${uid}v)"/>
+    <rect width="64" height="64" filter="url(#${uid}g)" opacity=".11"/>
+  </svg>`;
+}
+
+/* ---------- render helpers ---------- */
+const $=(s,el=document)=>el.querySelector(s);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const pc=p=>Math.round(p*100);
+const odds=p=>(1/p).toFixed(2);
+
+function renderTeam(code){
+  const t=FEED.teams[code], el=$("#panel-"+code);
+  el.innerHTML=`
+    <div class="team-head">
+      <div class="crest"><div class="star">${"★".repeat(t.stars)||"&nbsp;"}</div><div class="mono">${t.monogram}</div></div>
+      <div class="team-title">
+        <h2>${t.name.toUpperCase()}</h2>
+        <div class="meta caps num"><b>FIFA #${t.rank}</b> · ${esc(t.nickname)} · ${t.path}</div>
+        <div class="formrow"><span class="lbl caps">Form</span>${t.form.map(f=>`<span class="pip ${f}">${f}</span>`).join("")}</div>
+      </div>
+    </div>
+    <div class="coach">
+      <div class="photo">${portraitSVG(t.coach.name,"coach")}</div>
+      <div class="who"><div class="name">${esc(t.coach.name)}</div><div class="role caps">${esc(t.coach.role)}</div></div>
+    </div>
+    <div class="roster">
+      ${t.xi.map(p=>`
+        <div class="player" ${p.flag?`data-tip="<span class='tt'>TEAM NEWS</span><br><b>${esc(p.name)}</b> — ${esc(p.flag)}"`:""}>
+          <div class="photo">${portraitSVG(p.name,"player")}</div>
+          <span class="no num">${p.no}</span>
+          <span class="nm">${esc(p.name)}${p.cap?` <span class="cap">C</span>`:""}${p.flag?` <span class="flag">◐</span>`:""}</span>
+          <span class="pos caps">${p.pos}</span>
+        </div>`).join("")}
+    </div>
+    <div class="team-stats">
+      ${t.stats.map(([v,k])=>`<div class="stat"><div class="v num">${v}</div><div class="k caps">${k}</div></div>`).join("")}
+    </div>`;
+}
+
+function renderOracle(){
+  const P=FEED.prediction, O=FEED.outcomes, order=["NOR","DRW","ENG"];
+  const pickName=O[P.pick].short.toUpperCase();
+
+  $("#hero-eyebrow").textContent=`Oracle consensus — ${O[P.pick].label} probability`;
+  $("#hero-pct").innerHTML=`${pc(P.probs[P.pick])}<small>%</small>`;
+  $("#hero-call").textContent=`${O[P.pick].short} to advance`;
+  $("#hero-sub").innerHTML=`Most likely score <b>${P.mostLikelyScore} ${pickName}</b> · fair odds <b>${odds(P.probs[P.pick])}</b> · agreement <b>${P.agreement}</b> · spread <b>±${P.sigma} pts</b>`;
+
+  $("#meter").innerHTML=order.map(k=>`
+    <div class="seg num" data-outcome="${k}" style="flex:${P.probs[k]};background:${O[k].color};color:${O[k].ink}"
+      data-tip="<span class='tt'>CONSENSUS</span><br><b>${O[k].label}</b> — ${pc(P.probs[k])}% · implied odds ${odds(P.probs[k])}">${pc(P.probs[k])}</div>`).join("");
+  $("#seglabels").innerHTML=order.map(k=>`<div class="seglabel" data-outcome="${k}" style="flex:${P.probs[k]}">${O[k].short}</div>`).join("");
+  $("#legend").innerHTML=order.map(k=>`
+    <span class="it" data-outcome="${k}"><span class="sw" style="background:${O[k].color}"></span>${O[k].label}
+    <span class="odds num">${odds(P.probs[k])}</span></span>`).join("");
+
+  $("#rationale").innerHTML=FEED.rationale.map(([lead,body])=>`<li><b>${esc(lead)}</b> ${esc(body)}</li>`).join("");
+
+  $("#agents-meta").textContent=`weighted blend · spread ±${P.sigma} pts`;
+  $("#agent-rows").innerHTML=FEED.agents.map(a=>{
+    const top=Object.entries(a.probs).sort((x,y)=>y[1]-x[1])[0];
+    return `<div class="agent" data-tip="<span class='tt'>${a.id}</span><br>${esc(a.desc)}<br>Blend weight <b>${Math.round(a.weight*100)}%</b> · NOR ${pc(a.probs.NOR)} / DRW ${pc(a.probs.DRW)} / ENG ${pc(a.probs.ENG)}">
+      <span class="id caps">${a.id}</span>
+      <span class="bar">${order.map(k=>`<i data-outcome="${k}" style="flex:${a.probs[k]};background:${O[k].color}"></i>`).join("")}</span>
+      <span class="call num">${O[top[0]].monogram||top[0]} ${pc(top[1])}% <small>· w ${a.weight.toFixed(2)}</small></span>
+    </div>`;
+  }).join("");
+
+  $("#build").textContent=`${FEED.meta.version} · build 2026.07.11`;
+  $("#updated").textContent=`Updated ${FEED.meta.updated} · refresh 90s`;
+}
+
+/* ---------- interaction ---------- */
+function wireTips(){
+  const tip=$("#tip");
+  document.querySelectorAll("[data-tip]").forEach(el=>{
+    el.addEventListener("mouseenter",()=>{tip.innerHTML=el.dataset.tip;tip.style.opacity=1;
+      if(el.dataset.outcome)document.body.dataset.focus=el.dataset.outcome;});
+    el.addEventListener("mousemove",e=>{
+      const w=tip.offsetWidth,x=Math.min(e.clientX+14,innerWidth-w-10);
+      tip.style.left=x+"px";tip.style.top=Math.min(e.clientY+16,innerHeight-tip.offsetHeight-8)+"px";});
+    el.addEventListener("mouseleave",()=>{tip.style.opacity=0;delete document.body.dataset.focus;});
+  });
+  document.querySelectorAll(".legend .it,[data-outcome].seg").forEach(el=>{
+    el.addEventListener("mouseenter",()=>document.body.dataset.focus=el.dataset.outcome);
+    el.addEventListener("mouseleave",()=>delete document.body.dataset.focus);
+  });
+}
+
+function tickClock(){
+  const now=new Date(), ko=new Date(now);
+  ko.setHours(FEED.meta.kickoffHourLocal,0,0,0);
+  const d=ko-now, el=$("#clock");
+  if(d<=0){el.innerHTML=`<span class="t">MATCH LIVE</span> — prediction locked at kickoff`;return}
+  const hh=String(Math.floor(d/36e5)).padStart(2,"0"),
+        mm=String(Math.floor(d/6e4)%60).padStart(2,"0"),
+        ss=String(Math.floor(d/1e3)%60).padStart(2,"0");
+  el.innerHTML=`Prediction locks in <span class="t">T–${hh}:${mm}:${ss}</span>`;
+}
+
+renderTeam("NOR");
+renderTeam("ENG");
+renderOracle();
+wireTips();
+tickClock();
+setInterval(tickClock,1000);
+</script>
+</body>
+</html>
