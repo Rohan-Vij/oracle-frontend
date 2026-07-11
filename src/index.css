@@ -306,6 +306,7 @@ main {
 /* 1fr / auto / 1fr rows put the poll at the exact vertical center */
 .core {
   position: relative;
+  z-index: 2; /* cutouts overlap both roster panes symmetrically */
   display: grid;
   grid-template-rows: 1fr auto 1fr;
   justify-items: center;
@@ -315,6 +316,22 @@ main {
 .core > * {
   position: relative;
   z-index: 1;
+}
+/* the two strikers hold the gutters, arms passing behind the glass */
+.cutout {
+  position: absolute;
+  bottom: 0;
+  height: min(46vh, 74%);
+  width: auto;
+  z-index: 0;
+  filter: grayscale(1) contrast(1.06) drop-shadow(0 14px 24px rgba(25, 32, 56, 0.2));
+  pointer-events: none;
+}
+.cutout.left {
+  left: calc(-1 * clamp(28px, 3.4vw, 49px));
+}
+.cutout.right {
+  right: calc(-1 * clamp(28px, 3.4vw, 49px));
 }
 .zone {
   width: 100%;
@@ -333,22 +350,6 @@ main {
   gap: 10px;
   padding-bottom: 8px;
 }
-.cutout {
-  position: absolute;
-  bottom: 0;
-  height: min(52vh, 78%);
-  width: auto;
-  z-index: 0;
-  filter: grayscale(1) contrast(1.06) drop-shadow(0 16px 26px rgba(25, 32, 56, 0.22));
-  pointer-events: none;
-}
-.cutout.left {
-  left: calc(-1 * clamp(4px, 1.6vw, 26px));
-}
-.cutout.right {
-  right: calc(-1 * clamp(4px, 1.6vw, 26px));
-}
-
 .tie {
   display: flex;
   align-items: center;
@@ -384,9 +385,9 @@ main {
 /* ---------- poll, center stage ---------- */
 .poll {
   width: 100%;
-  max-width: 480px;
+  max-width: 660px;
   border-radius: 28px;
-  padding: clamp(18px, 3vh, 26px) clamp(20px, 2.4vw, 28px);
+  padding: clamp(14px, 2.4vh, 20px) clamp(20px, 2.4vw, 28px);
   transform: none;
 }
 .poll h4 {
@@ -395,6 +396,28 @@ main {
   letter-spacing: -0.015em;
   font-size: clamp(20px, 3vh, 26px);
   line-height: 1.05;
+}
+.livecount {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.livedot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #34c759;
+  animation: livepulse 2s ease-in-out infinite;
+}
+@keyframes livepulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 .choices {
   display: flex;
@@ -541,7 +564,7 @@ main {
   padding-top: 12px;
   /* short pane, more scrolling — the card must never crowd the
      matchline above or the bet row below */
-  max-height: min(22vh, 210px);
+  max-height: min(17vh, 160px);
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
@@ -621,7 +644,7 @@ main {
 /* ---------- bet links ---------- */
 .betrow {
   width: 100%;
-  max-width: 480px;
+  max-width: 660px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -672,13 +695,23 @@ main {
   body {
     overflow-y: auto; /* safety valve on short phones */
   }
+  /* let the page flow naturally instead of squeezing into the viewport —
+     otherwise flex shrinks the matchline behind the card */
+  .app {
+    height: auto;
+    min-height: 100%;
+  }
+  .zone,
+  .poll,
+  .matchline {
+    flex-shrink: 0;
+  }
   main {
     grid-template-columns: 1fr;
-    padding: 12px 16px 20px;
+    padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
     gap: 0;
   }
-  .roster,
-  .cutout {
+  .roster {
     display: none;
   }
   .tie {
@@ -715,10 +748,35 @@ main {
   .choice {
     font-size: 14px;
     gap: 7px;
+    min-height: 46px; /* touch target */
   }
   .choice .cflag {
     width: 18px;
     height: 13.5px;
+  }
+  .bet {
+    min-height: 46px;
+  }
+  .modelblock {
+    padding: 13px 14px 12px;
+  }
+  .tldr {
+    font-size: 13.5px;
+  }
+  .rpoint p {
+    font-size: 13px;
+  }
+  /* phones get the short version: agent + lean, no description */
+  .ragent {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .ragent .desc {
+    display: none;
+  }
+  .results .result {
+    grid-template-columns: 80px 1fr 44px;
   }
   .rgrid {
     grid-template-columns: 1fr;
@@ -734,11 +792,6 @@ main {
   }
 }
 
-@media (max-width: 1360px) {
-  .cutout {
-    height: min(44vh, 70%);
-  }
-}
 @media (max-width: 1150px) {
   .cutout {
     display: none;

@@ -18,24 +18,24 @@ export const FEED = {
     pick: 'ENG',
     probs: { NOR: 0.27, DRW: 0.19, ENG: 0.54 },
     blurb:
-      'England’s midfield control and set-piece edge outweigh the Haaland threat — but only just.',
-    source: 'Consensus of 4 quant agents',
+      'England’s midfield control and set-piece edge should be enough to survive Haaland. It is a close call.',
+    source: 'Hermes · consensus of 4 sub-agents',
     reasoning: [
       {
         title: 'Midfield geometry',
-        body: 'Rice and Bellingham compress the half-spaces where Norway build nearly all of their progressive carries. The transition volume Norway lives on projects well below their tournament baseline, and without it their attack becomes forecastable.',
+        body: 'Rice and Bellingham close down the half-spaces where Norway start most of their attacks. Norway live on fast breaks, and the numbers say those chances dry up against this England midfield.',
       },
       {
         title: 'The Haaland variable',
-        body: 'Haaland’s shot quality keeps Norway alive in every game state, and he is the single biggest reason this call stays narrow. One touch decides a knockout — the model respects that and refuses to call this comfortable.',
+        body: 'Haaland is the reason this call stays narrow. He turns half-chances into goals, and one touch can decide a knockout. Nobody at the desk thinks this is comfortable.',
       },
       {
         title: 'Set pieces',
-        body: 'England win first contact on dead balls at a rate Norway have not matched all cycle. In a bracket this tight, the quiet dead-ball edge is often the whole margin.',
+        body: 'England attack dead balls better than anyone Norway have faced this cycle. In a game this tight, corners and free kicks are often the whole margin.',
       },
       {
         title: 'Market drift',
-        body: 'The books moved toward England after midweek training reports flagged Ødegaard’s ankle. Our agents had it priced a day earlier — when the market catches up to the desk, conviction firms.',
+        body: 'The books moved toward England after midweek reports raised doubts about Ødegaard’s ankle. Our agents had priced that in a day earlier, which firms up the call.',
       },
     ],
     agents: [

@@ -21,12 +21,17 @@ function Flag({ className = 'flag', src, alt }) {
 
 export default function App() {
   const { meta, prediction, outcomes, teams } = FEED
+  /* skip the 5MB backdrop video on phones: bandwidth, battery, and the
+     glass has little room to shine there anyway */
+  const showVideo = window.matchMedia('(min-width: 901px)').matches
 
   return (
     <div className="app">
-      <div className="videobg" aria-hidden="true">
-        <video autoPlay muted loop playsInline src={`${BASE}video/bg.mp4`} />
-      </div>
+      {showVideo && (
+        <div className="videobg" aria-hidden="true">
+          <video autoPlay muted loop playsInline src={`${BASE}video/bg.mp4`} />
+        </div>
+      )}
       <header>
         <span className="brand">
           <span>
@@ -45,7 +50,6 @@ export default function App() {
         <section className="core">
           <img className="cutout left" src={`${BASE}cutouts/haaland.webp`} alt="" aria-hidden="true" />
           <img className="cutout right" src={`${BASE}cutouts/kane.webp`} alt="" aria-hidden="true" />
-
           <div className="zone top">
             <div className="matchline">
               <div className="tie">

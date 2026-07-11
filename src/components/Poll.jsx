@@ -41,6 +41,16 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
     fetchCounts().then(applyIfCurrent(seq))
   }, [])
 
+  /* live tally: refresh every 15s while the tab is visible */
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.hidden) return
+      const seq = reqSeq.current
+      fetchCounts().then(applyIfCurrent(seq))
+    }, 15_000)
+    return () => clearInterval(id)
+  }, [])
+
   const cast = (k) => {
     persistVote(k)
     setLive((p) => shifted(p, vote, k))
@@ -105,11 +115,14 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
           </div>
           <div className="agreement">
             {withModel
-              ? `You and the model agree — ${outcomes[vote].label}.`
-              : `You're going against the model — it has ${outcomes[modelPick].label}.`}
+              ? `You and Hermes agree: ${outcomes[vote].label}.`
+              : `You're going against Hermes. It has ${outcomes[modelPick].label}.`}
           </div>
           <div className="pollmeta">
-            <span>{total.toLocaleString()} votes</span>
+            <span className="livecount">
+              <span className="livedot" aria-hidden="true" />
+              {total.toLocaleString()} votes
+            </span>
             <button className="change" onClick={clear}>
               Change vote
             </button>
@@ -123,7 +136,7 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
         <div className="modelrow">
           <img className="modelrow-flag" src={flagSrcs[modelPick]} alt="" aria-hidden="true" />
           <span className="modelrow-pick">
-            <span className="modelrow-kicker">The model&rsquo;s pick</span>
+            <span className="modelrow-kicker">The Hermes agent&rsquo;s pick</span>
             {outcomes[modelPick].label} to win
           </span>
         </div>
@@ -148,7 +161,7 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
             ))}
           </div>
           <div className="rmeta">
-            {prediction.source} · Updated {updated} · For entertainment only — not betting advice
+            {prediction.source} · Updated {updated} · For entertainment, not betting advice
           </div>
         </div>
       </div>
