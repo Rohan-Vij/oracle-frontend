@@ -15,3 +15,14 @@ export async function fetchPrediction() {
     return null
   }
 }
+
+export async function fetchPredictionHistory() {
+  try {
+    const r = await fetch(`${API_BASE}/api/prediction/${MATCH_ID}/history`)
+    if (!r.ok) return null
+    const data = await r.json()
+    return data.entries || []
+  } catch {
+    return null
+  }
+}

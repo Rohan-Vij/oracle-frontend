@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  readVote,
-  persistVote,
-  clearVote,
-  fetchCounts,
-  castVote,
-  localCounts,
-} from '../services/poll.js'
+import { readVote, persistVote, clearVote, fetchCounts, castVote } from '../services/poll.js'
 
 const ORDER = ['NOR', 'ENG'] /* two-way ballot: draw removed */
 
@@ -19,7 +12,10 @@ function shifted(live, from, to) {
   return { ...live, counts, total: ORDER.reduce((s, k) => s + (counts[k] || 0), 0) }
 }
 
-export default function Poll({ outcomes, flagSrcs, modelPick, prediction, updated }) {
+const callTime = (iso) =>
+  iso ? new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'
+
+export default function Poll({ outcomes, flagSrcs, modelPick, prediction, updated, history = [] }) {
   const [vote, setVote] = useState(() => {
     const v = readVote()
     return ORDER.includes(v) ? v : null
@@ -68,9 +64,10 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
     requestAnimationFrame(() => firstChoiceRef.current?.focus())
   }
 
-  const counts = live?.counts ?? localCounts(vote)
-  const total = ORDER.reduce((s, k) => s + (counts[k] || 0), 0)
-  const pct = (k) => (total > 0 ? (counts[k] / total) * 100 : 0)
+  /* no fake numbers: bars and totals stay empty until the API answers */
+  const counts = live?.counts ?? null
+  const total = counts ? ORDER.reduce((s, k) => s + (counts[k] || 0), 0) : null
+  const pct = (k) => (counts && total > 0 ? (counts[k] / total) * 100 : 0)
   const withModel = vote === modelPick
 
   return (
@@ -92,7 +89,8 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
         </div>
       ) : (
         <div className="results-wrap" role="status" ref={resultsRef} tabIndex={-1}>
-          <div className="results">
+          {counts && (
+            <div className="results">
             {ORDER.map((k) => (
               <div
                 className={`result${k === vote ? ' mine' : ''}`}
@@ -129,17 +127,22 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
                 <span className="val">{Math.round(pct(k))}%</span>
               </div>
             ))}
-          </div>
+            </div>
+          )}
           <div className="agreement">
             {withModel
               ? `You and Hermes agree: ${outcomes[vote].label}.`
               : `You're going against Hermes. It has ${outcomes[modelPick].label}.`}
           </div>
           <div className="pollmeta">
-            <span className="livecount">
-              <span className="livedot" aria-hidden="true" />
-              {total.toLocaleString()} votes
-            </span>
+            {total != null ? (
+              <span className="livecount">
+                <span className="livedot" aria-hidden="true" />
+                {total.toLocaleString()} votes
+              </span>
+            ) : (
+              <span />
+            )}
             <button className="change" onClick={clear}>
               Change vote
             </button>
@@ -177,6 +180,20 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
               </div>
             ))}
           </div>
+          {history.length > 0 && (
+            <div className="rhistory">
+              <h5>Earlier calls</h5>
+              {history.map((h, i) => (
+                <div className="rcall" key={h.updatedAt ?? i}>
+                  <span className="rcall-time">{callTime(h.updatedAt)}</span>
+                  <span className="rcall-pick">
+                    {outcomes[h.pick]?.label ?? h.pick} to win
+                  </span>
+                  <span className="rcall-blurb">{h.blurb}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="rmeta">
             {prediction.source} · For entertainment, not betting advice
           </div>

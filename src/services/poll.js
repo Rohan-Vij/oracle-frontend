@@ -14,9 +14,6 @@ export const API_BASE =
 const KEY = 'whowins-poll-nor-eng-qf'
 const VOTER_KEY = 'whowins-voter-id'
 
-/* Offline fallback only — real counts come from the backend. */
-const SEED = { NOR: 5214, DRW: 1544, ENG: 7409 }
-
 /* localStorage throws when storage is blocked (sandboxed iframe, cookies
    disabled, some private modes). */
 export function readVote() {
@@ -93,8 +90,3 @@ export async function castVote(pick) {
   }
 }
 
-export function localCounts(vote) {
-  const counts = { ...SEED }
-  if (vote) counts[vote] += 1
-  return counts
-}

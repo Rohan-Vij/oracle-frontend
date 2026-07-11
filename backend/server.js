@@ -256,10 +256,56 @@ app.post('/api/prediction/:matchId', async (req, res) => {
   const payload = sanitizePrediction(req.body)
   if (!payload) return res.status(400).json({ error: 'bad prediction payload' })
   try {
-    await predRef(matchId).set({ payload, updatedAt: FieldValue.serverTimestamp() })
+    /* current doc is overwritten; every push is also archived */
+    const batch = db.batch()
+    batch.set(predRef(matchId), { payload, updatedAt: FieldValue.serverTimestamp() })
+    batch.set(predRef(matchId).collection('history').doc(), {
+      payload,
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+    await batch.commit()
     res.json({ ok: true })
   } catch (err) {
     console.error('POST prediction failed', err)
+    res.status(500).json({ error: 'internal' })
+  }
+})
+
+/* Timestamped archive of Hermes's calls, newest first. Falls back to
+   the current doc so the list is never empty once a prediction exists. */
+app.get('/api/prediction/:matchId/history', async (req, res) => {
+  const { matchId } = req.params
+  if (!MATCH_ID_RE.test(matchId)) return res.status(400).json({ error: 'bad matchId' })
+  try {
+    const snap = await predRef(matchId)
+      .collection('history')
+      .orderBy('updatedAt', 'desc')
+      .limit(20)
+      .get()
+    let entries = snap.docs.map((d) => {
+      const v = d.data()
+      return {
+        pick: v.payload?.pick,
+        blurb: v.payload?.blurb ?? '',
+        updatedAt: v.updatedAt?.toDate?.().toISOString() ?? null,
+      }
+    })
+    if (!entries.length) {
+      const cur = await predRef(matchId).get()
+      if (cur.exists) {
+        const d = cur.data()
+        entries = [
+          {
+            pick: d.payload?.pick,
+            blurb: d.payload?.blurb ?? '',
+            updatedAt: d.updatedAt?.toDate?.().toISOString() ?? null,
+          },
+        ]
+      }
+    }
+    res.json({ entries })
+  } catch (err) {
+    console.error('GET prediction history failed', err)
     res.status(500).json({ error: 'internal' })
   }
 })

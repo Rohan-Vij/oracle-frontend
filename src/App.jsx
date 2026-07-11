@@ -4,7 +4,7 @@ import Roster from './components/Roster.jsx'
 import Poll from './components/Poll.jsx'
 import LiveTicker from './components/LiveTicker.jsx'
 import { fetchLiveFixtures } from './services/liveScores.js'
-import { fetchPrediction } from './services/prediction.js'
+import { fetchPrediction, fetchPredictionHistory } from './services/prediction.js'
 
 const BASE = import.meta.env.BASE_URL
 const resolve = (src) => (src && !/^https?:/.test(src) ? BASE + src : src)
@@ -50,13 +50,18 @@ export default function App() {
       /norway/i.test(f.home + f.away) && /england/i.test(f.home + f.away)
   )
 
-  /* Hermes updates its prediction mid-game; poll for the latest push */
+  /* Hermes updates its prediction mid-game; poll for the latest push
+     and keep the timestamped archive of its earlier calls */
   const [livePrediction, setLivePrediction] = useState(null)
+  const [predictionHistory, setPredictionHistory] = useState([])
   useEffect(() => {
     const load = () => {
       if (document.hidden) return
       fetchPrediction().then((p) => {
         if (p) setLivePrediction(p)
+      })
+      fetchPredictionHistory().then((h) => {
+        if (h) setPredictionHistory(h)
       })
     }
     load()
@@ -145,6 +150,7 @@ export default function App() {
             modelPick={prediction.pick}
             prediction={prediction}
             updated={updatedLabel}
+            history={predictionHistory.filter((h) => h.updatedAt !== livePrediction?.updatedAt)}
           />
 
           <div className="zone bottom">
