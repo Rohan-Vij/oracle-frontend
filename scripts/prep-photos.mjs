@@ -39,6 +39,10 @@ const CUTOUTS = [
   ['haaland', 'norway_09'],
   ['kane', 'england_09'],
 ]
+const FLAGS = [
+  ['norway', 'norway_flag'],
+  ['england', 'england_flag'],
+]
 
 const files = readdirSync(PHOTOS)
 const fileFor = (frag) => {
@@ -70,4 +74,13 @@ for (const [slug, frag] of CUTOUTS) {
     .webp({ quality: 82 })
     .toFile(`public/cutouts/${slug}.webp`)
   console.log(`cutouts/${slug}.webp`)
+}
+
+mkdirSync('public/flags', { recursive: true })
+for (const [slug, frag] of FLAGS) {
+  await sharp(fileFor(frag))
+    .resize({ width: 320 })
+    .webp({ quality: 85 })
+    .toFile(`public/flags/${slug}.webp`)
+  console.log(`flags/${slug}.webp`)
 }

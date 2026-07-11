@@ -20,6 +20,30 @@ export const FEED = {
     blurb:
       'England’s midfield control and set-piece edge outweigh the Haaland threat — but only just.',
     source: 'Consensus of 4 quant agents',
+    reasoning: [
+      {
+        title: 'Midfield geometry',
+        body: 'Rice and Bellingham compress the half-spaces where Norway build nearly all of their progressive carries. The transition volume Norway lives on projects well below their tournament baseline, and without it their attack becomes forecastable.',
+      },
+      {
+        title: 'The Haaland variable',
+        body: 'Haaland’s shot quality keeps Norway alive in every game state, and he is the single biggest reason this call stays narrow. One touch decides a knockout — the model respects that and refuses to call this comfortable.',
+      },
+      {
+        title: 'Set pieces',
+        body: 'England win first contact on dead balls at a rate Norway have not matched all cycle. In a bracket this tight, the quiet dead-ball edge is often the whole margin.',
+      },
+      {
+        title: 'Market drift',
+        body: 'The books moved toward England after midweek training reports flagged Ødegaard’s ankle. Our agents had it priced a day earlier — when the market catches up to the desk, conviction firms.',
+      },
+    ],
+    agents: [
+      { id: 'Poisson-xG', desc: 'Shot-quality simulation, ten thousand runs', lean: 'England, narrowly' },
+      { id: 'Elo-market', desc: 'Rating prior blended with market movement', lean: 'England, firmly' },
+      { id: 'Bayes-form', desc: 'Rolling form model over the last 18 matches', lean: 'England, narrowly' },
+      { id: 'Scout-LLM', desc: 'Reads team news, pressers, injury reports', lean: 'England, with reservations' },
+    ],
   },
   outcomes: {
     NOR: { label: 'Norway', color: 'var(--nor)' },
@@ -30,7 +54,7 @@ export const FEED = {
     NOR: {
       code: 'NOR',
       name: 'Norway',
-      flag: 'https://flagcdn.com/w160/no.png',
+      flag: 'flags/norway.webp',
       coach: {
         name: 'Ståle Solbakken',
         photo: 'https://upload.wikimedia.org/wikipedia/commons/8/85/Kopengagen-_%282%29.jpg',
@@ -52,7 +76,7 @@ export const FEED = {
     ENG: {
       code: 'ENG',
       name: 'England',
-      flag: 'https://flagcdn.com/w160/gb-eng.png',
+      flag: 'flags/england.webp',
       coach: {
         name: 'Thomas Tuchel',
         photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Thomas_Tuchel_England_v_Ghana_23_June_2026-081.jpg/960px-Thomas_Tuchel_England_v_Ghana_23_June_2026-081.jpg',
