@@ -10,7 +10,7 @@ export async function fetchLiveFixtures() {
     const r = await fetch(`${API_BASE}/api/live`)
     if (!r.ok) return null
     const data = await r.json()
-    return data.fixtures || []
+    return { fixtures: data.fixtures || [], fetchedAt: data.fetchedAt || null }
   } catch {
     return null
   }

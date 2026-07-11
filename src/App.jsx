@@ -36,7 +36,7 @@ export default function App() {
     const load = () => {
       if (document.hidden) return
       fetchLiveFixtures().then((f) => {
-        if (f) setLiveFixtures(f)
+        if (f) setLiveFixtures(f.fixtures)
       })
     }
     load()
@@ -116,7 +116,22 @@ export default function App() {
                 <span className="nm">England</span>
                 <Flag src={teams.ENG.flag} alt="England flag" />
               </div>
-              {!ourMatch && (
+              {ourMatch ? (
+                ourMatch.events?.length > 0 && (
+                  <div className="events-row">
+                    {ourMatch.events.slice(-4).map((e, i) => (
+                      <span className="ev" key={i}>
+                        <span className="ev-ico" aria-hidden="true">
+                          {e.type === 'Goal' ? '⚽' : /yellow/i.test(e.detail) ? '🟨' : '🟥'}
+                        </span>
+                        {e.minute}
+                        {e.extra ? `+${e.extra}` : ''}′ {e.player}
+                        <span className="ev-side">{e.side === 'home' ? 'NOR' : 'ENG'}</span>
+                      </span>
+                    ))}
+                  </div>
+                )
+              ) : (
                 <div className="where">
                   {meta.venue} · Kickoff {meta.kickoff} · {meta.kickoffLocal}
                 </div>

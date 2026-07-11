@@ -80,16 +80,31 @@ async function fetchUpstreamLive() {
   if (body.errors && Object.keys(body.errors).length) {
     throw new Error(`upstream error: ${JSON.stringify(body.errors)}`)
   }
-  const fixtures = (body.response || []).map((f) => ({
-    id: f.fixture?.id,
-    minute: f.fixture?.status?.elapsed ?? null,
-    status: f.fixture?.status?.short ?? '',
-    league: f.league?.name ?? '',
-    home: f.teams?.home?.name ?? '',
-    away: f.teams?.away?.name ?? '',
-    homeGoals: f.goals?.home ?? 0,
-    awayGoals: f.goals?.away ?? 0,
-  }))
+  const fixtures = (body.response || []).map((f) => {
+    const homeId = f.teams?.home?.id
+    return {
+      id: f.fixture?.id,
+      minute: f.fixture?.status?.elapsed ?? null,
+      status: f.fixture?.status?.short ?? '',
+      league: f.league?.name ?? '',
+      home: f.teams?.home?.name ?? '',
+      away: f.teams?.away?.name ?? '',
+      homeGoals: f.goals?.home ?? 0,
+      awayGoals: f.goals?.away ?? 0,
+      /* goals and cards ride along in the live payload at no extra cost */
+      events: (f.events || [])
+        .filter((e) => e.type === 'Goal' || e.type === 'Card')
+        .slice(-10)
+        .map((e) => ({
+          minute: e.time?.elapsed ?? null,
+          extra: e.time?.extra ?? null,
+          type: e.type,
+          detail: e.detail ?? '',
+          side: e.team?.id === homeId ? 'home' : 'away',
+          player: e.player?.name ?? '',
+        })),
+    }
+  })
   liveCache = { at: Date.now(), data: { fixtures, fetchedAt: new Date().toISOString() } }
   return liveCache.data
 }

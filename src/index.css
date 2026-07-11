@@ -116,6 +116,27 @@ body {
   color: var(--espn-red);
   font-weight: 600;
 }
+/* in-play event chips under the headline: goals and cards */
+.events-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ev-ico {
+  margin-right: 3px;
+}
+.ev-side {
+  margin-left: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
 /* in-play: the score lives inside the headline */
 .scorechip {
   display: inline-flex;
