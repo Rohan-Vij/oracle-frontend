@@ -132,7 +132,7 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
         <div className="modelrow">
           <img className="modelrow-flag" src={flagSrcs[modelPick]} alt="" aria-hidden="true" />
           <span className="modelrow-pick">
-            <span className="modelrow-kicker">The Hermes agent&rsquo;s pick · updated {updated}</span>
+            <span className="modelrow-kicker">The Hermes agent&rsquo;s pick: updated {updated}</span>
             {outcomes[modelPick].label} to win
           </span>
         </div>

@@ -104,16 +104,19 @@ export default function App() {
               <div className="tie">
                 <Flag src={teams.NOR.flag} alt="Norway flag" />
                 <span className="nm">Norway</span>
-                <span className="vs">vs</span>
+                {ourMatch ? (
+                  <span className="scorechip">
+                    {ourMatch.homeGoals}
+                    <span className="scoredash">–</span>
+                    {ourMatch.awayGoals}
+                  </span>
+                ) : (
+                  <span className="vs">vs</span>
+                )}
                 <span className="nm">England</span>
                 <Flag src={teams.ENG.flag} alt="England flag" />
               </div>
-              {ourMatch ? (
-                <div className="where live">
-                  <span className="ticker-dot" aria-hidden="true" /> Live {ourMatch.minute}′ ·
-                  Norway {ourMatch.homeGoals}–{ourMatch.awayGoals} England
-                </div>
-              ) : (
+              {!ourMatch && (
                 <div className="where">
                   {meta.venue} · Kickoff {meta.kickoff} · {meta.kickoffLocal}
                 </div>

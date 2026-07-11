@@ -114,13 +114,26 @@ body {
   color: var(--espn-red);
   font-weight: 600;
 }
-.where.live {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  color: var(--ink);
-  font-weight: 600;
+/* in-play: the score lives inside the headline */
+.scorechip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 5px 18px 8px;
+  border-radius: 16px;
+  background: rgba(24, 26, 32, 0.88);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 10px 24px rgba(25, 32, 56, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-family: var(--sans-display);
+  font-weight: 700;
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.scoredash {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.72em;
 }
 /* the match footage, ghosted behind the glass */
 .videobg {
