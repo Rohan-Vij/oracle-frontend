@@ -45,10 +45,12 @@ export const FEED = {
       { id: 'Scout-LLM', desc: 'Reads team news, pressers, injury reports', lean: 'England, with reservations' },
     ],
   },
+  /* bar colors: country red vs royal blue — validated 2026-07-11 as a
+     diverging pair on white (CVD ΔE 95+, both ≥3:1) */
   outcomes: {
-    NOR: { label: 'Norway', color: 'var(--nor)' },
+    NOR: { label: 'Norway', color: '#d81f2a' },
     DRW: { label: 'Draw', color: 'var(--drw)' },
-    ENG: { label: 'England', color: 'var(--eng)' },
+    ENG: { label: 'England', color: '#2456d6' },
   },
   teams: {
     NOR: {

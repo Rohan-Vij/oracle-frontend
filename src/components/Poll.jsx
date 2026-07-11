@@ -94,15 +94,36 @@ export default function Poll({ outcomes, flagSrcs, modelPick, prediction, update
         <div className="results-wrap" role="status" ref={resultsRef} tabIndex={-1}>
           <div className="results">
             {ORDER.map((k) => (
-              <div className="result" key={k} title={`${counts[k].toLocaleString()} votes`}>
+              <div
+                className={`result${k === vote ? ' mine' : ''}`}
+                key={k}
+                title={`${counts[k].toLocaleString()} votes`}
+              >
                 <span className="lbl">
+                  <img className="rflag" src={flagSrcs[k]} alt="" aria-hidden="true" />
                   {outcomes[k].label}
-                  {k === vote ? ' ✓' : ''}
+                  {k === vote && (
+                    <span className="pickbadge" title="Your pick">
+                      <svg viewBox="0 0 12 12" aria-hidden="true">
+                        <path
+                          d="M2.5 6.2 5 8.7 9.5 3.6"
+                          fill="none"
+                          stroke="#fff"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  )}
                 </span>
                 <span className="track">
                   <span
                     className="fill"
-                    style={{ width: `${pct(k)}%`, background: outcomes[k].color }}
+                    style={{
+                      width: `${pct(k)}%`,
+                      background: `linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 50%), ${outcomes[k].color}`,
+                    }}
                   />
                 </span>
                 <span className="val">{Math.round(pct(k))}%</span>
