@@ -8,7 +8,7 @@ export const FEED = {
   meta: {
     competition: 'World Cup 2026',
     stage: 'Quarter-final',
-    venue: 'Kansas City',
+    venue: 'Miami',
     date: 'Sat Jul 11',
     kickoff: '2:00 PM PT',
     kickoffLocal: '4:00 PM local',
