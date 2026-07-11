@@ -1,42 +1,71 @@
-import { useRef, useState } from 'react'
-import { readVote, persistVote, clearVote, getCounts } from '../services/poll.js'
+import { useEffect, useRef, useState } from 'react'
+import {
+  readVote,
+  persistVote,
+  clearVote,
+  fetchCounts,
+  castVote,
+  localCounts,
+} from '../services/poll.js'
 
 const ORDER = ['NOR', 'DRW', 'ENG']
 
-export default function Poll({
-  outcomes,
-  flagSrcs,
-  modelPick,
-  closesAt,
-  onOpenReasoning,
-  reasoningBtnRef,
-}) {
+/* Optimistically move a vote between buckets while the POST is in flight. */
+function shifted(live, from, to) {
+  if (!live) return live
+  const counts = { ...live.counts }
+  if (from && counts[from] > 0) counts[from] -= 1
+  if (to) counts[to] = (counts[to] || 0) + 1
+  return { ...live, counts, total: ORDER.reduce((s, k) => s + (counts[k] || 0), 0) }
+}
+
+export default function Poll({ outcomes, flagSrcs, modelPick, prediction, updated }) {
   const [vote, setVote] = useState(() => {
     const v = readVote()
     return ORDER.includes(v) ? v : null
   })
+  /* null until the backend answers; localCounts() covers the gap/offline. */
+  const [live, setLive] = useState(null)
   const resultsRef = useRef(null)
   const firstChoiceRef = useRef(null)
 
+  /* Guards against out-of-order responses: only the latest request may
+     write counts (e.g. slow initial GET landing after a vote POST). */
+  const reqSeq = useRef(0)
+  const applyIfCurrent = (seq) => (d) => {
+    if (d && seq === reqSeq.current) setLive(d)
+  }
+
+  useEffect(() => {
+    const seq = reqSeq.current
+    fetchCounts().then(applyIfCurrent(seq))
+  }, [])
+
   const cast = (k) => {
     persistVote(k)
+    setLive((p) => shifted(p, vote, k))
     setVote(k)
+    const seq = ++reqSeq.current
+    castVote(k).then(applyIfCurrent(seq))
     requestAnimationFrame(() => resultsRef.current?.focus())
   }
   const clear = () => {
     clearVote()
+    setLive((p) => shifted(p, vote, null))
     setVote(null)
+    const seq = ++reqSeq.current
+    castVote(null).then(applyIfCurrent(seq))
     requestAnimationFrame(() => firstChoiceRef.current?.focus())
   }
 
-  const counts = getCounts(vote)
-  const total = ORDER.reduce((s, k) => s + counts[k], 0)
+  const counts = live?.counts ?? localCounts(vote)
+  const total = ORDER.reduce((s, k) => s + (counts[k] || 0), 0)
+  const pct = (k) => (total > 0 ? (counts[k] / total) * 100 : 0)
   const withModel = vote === modelPick
 
   return (
     <div className="poll">
       <h4>Who wins? Cast your vote</h4>
-      <div className="closes">Voting closes at kickoff · {closesAt}</div>
       {!vote ? (
         <div className="choices">
           {ORDER.map((k, i) => (
@@ -67,10 +96,10 @@ export default function Poll({
                 <span className="track">
                   <span
                     className="fill"
-                    style={{ width: `${(counts[k] / total) * 100}%`, background: outcomes[k].color }}
+                    style={{ width: `${pct(k)}%`, background: outcomes[k].color }}
                   />
                 </span>
-                <span className="val">{Math.round((counts[k] / total) * 100)}%</span>
+                <span className="val">{Math.round(pct(k))}%</span>
               </div>
             ))}
           </div>
@@ -89,14 +118,40 @@ export default function Poll({
       )}
 
       <div className="poll-divider" />
-      <button className="modelrow" ref={reasoningBtnRef} onClick={onOpenReasoning}>
-        <img className="modelrow-flag" src={flagSrcs[modelPick]} alt="" aria-hidden="true" />
-        <span className="modelrow-pick">
-          <span className="modelrow-kicker">The model&rsquo;s pick</span>
-          {outcomes[modelPick].label} to win
-        </span>
-        <span className="modelrow-cta">Read the reasoning →</span>
-      </button>
+
+      <div className="modelblock">
+        <div className="modelrow">
+          <img className="modelrow-flag" src={flagSrcs[modelPick]} alt="" aria-hidden="true" />
+          <span className="modelrow-pick">
+            <span className="modelrow-kicker">The model&rsquo;s pick</span>
+            {outcomes[modelPick].label} to win
+          </span>
+        </div>
+        <p className="tldr">{prediction.blurb}</p>
+
+        <div className="reasoning-inline">
+          <div className="rgrid">
+            {prediction.reasoning.map((r) => (
+              <div className="rpoint" key={r.title}>
+                <h5>{r.title}</h5>
+                <p>{r.body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rdesk">
+            {prediction.agents.map((a) => (
+              <div className="ragent" key={a.id}>
+                <span className="id">{a.id}</span>
+                <span className="desc">{a.desc}</span>
+                <span className="lean">{a.lean}</span>
+              </div>
+            ))}
+          </div>
+          <div className="rmeta">
+            {prediction.source} · Updated {updated} · For entertainment only — not betting advice
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

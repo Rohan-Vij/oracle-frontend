@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
 import { FEED } from './data/feed.js'
 import Roster from './components/Roster.jsx'
 import Poll from './components/Poll.jsx'
-import ReasoningModal from './components/ReasoningModal.jsx'
 
 const BASE = import.meta.env.BASE_URL
 const resolve = (src) => (src && !/^https?:/.test(src) ? BASE + src : src)
 
+/* Flags: hide the box rather than show a broken-image glyph if one fails. */
 function Flag({ className = 'flag', src, alt }) {
   return (
     <img
@@ -22,28 +21,6 @@ function Flag({ className = 'flag', src, alt }) {
 
 export default function App() {
   const { meta, prediction, outcomes, teams } = FEED
-  const pick = outcomes[prediction.pick]
-  const pickTeam = teams[prediction.pick]
-  /* /reasoning deep-links straight to the model's write-up */
-  const atReasoning = () =>
-    window.location.pathname.endsWith('/reasoning') || window.location.hash === '#reasoning'
-  const [modalOpen, setModalOpen] = useState(atReasoning)
-  const modelBarRef = useRef(null)
-
-  const openModal = () => {
-    setModalOpen(true)
-    window.history.pushState({}, '', '/reasoning')
-  }
-  const closeModal = () => {
-    setModalOpen(false)
-    if (atReasoning()) window.history.pushState({}, '', '/')
-    modelBarRef.current?.focus()
-  }
-  useEffect(() => {
-    const onPop = () => setModalOpen(atReasoning())
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [])
 
   return (
     <div className="app">
@@ -57,7 +34,7 @@ export default function App() {
           </span>
         </span>
         <span className="tag">
-          {meta.competition} — {meta.stage}
+          <b>{meta.competition}</b> — {meta.stage}
         </span>
         <span className="tag right">{meta.date}</span>
       </header>
@@ -88,9 +65,8 @@ export default function App() {
             outcomes={outcomes}
             flagSrcs={{ NOR: resolve(teams.NOR.flag), ENG: resolve(teams.ENG.flag) }}
             modelPick={prediction.pick}
-            closesAt={meta.kickoff}
-            onOpenReasoning={openModal}
-            reasoningBtnRef={modelBarRef}
+            prediction={prediction}
+            updated={meta.updated}
           />
 
           <div className="zone bottom">
@@ -115,15 +91,6 @@ export default function App() {
 
         <Roster team={teams.ENG} />
       </main>
-
-      <ReasoningModal
-        open={modalOpen}
-        onClose={closeModal}
-        prediction={prediction}
-        pick={pick}
-        flagSrc={resolve(pickTeam.flag)}
-        meta={meta}
-      />
     </div>
   )
 }

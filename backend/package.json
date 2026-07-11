@@ -1,0 +1,16 @@
+{
+  "name": "whowins-poll-api",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.10.0",
+    "express": "^4.19.2"
+  }
+}
